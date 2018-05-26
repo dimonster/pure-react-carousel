@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import omit from 'object.omit';
 import { Spinner } from '../';
 import GetScrollParent from './GetScrollParent';
 import { CarouselPropTypes, cn, pct, boundedRange } from '../helpers';
@@ -36,6 +37,7 @@ const Slider = class Slider extends React.Component {
     touchEnabled: PropTypes.bool.isRequired,
     trayTag: PropTypes.string,
     visibleSlides: PropTypes.number,
+    callback: PropTypes.func,
   }
 
   static defaultProps = {
@@ -50,6 +52,7 @@ const Slider = class Slider extends React.Component {
     tabIndex: null,
     trayTag: 'ul',
     visibleSlides: 1,
+    callback: () => {},
   }
 
   static slideSizeInPx(orientation, sliderTrayWidth, sliderTrayHeight, totalSlides) {
@@ -107,6 +110,9 @@ const Slider = class Slider extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
+    if (prevProps.currentSlide !== this.props.currentSlide) {
+      this.props.callback(this.props.currentSlide);
+    }
     if (!prevProps.isPlaying && this.props.isPlaying) this.play();
     if (prevProps.isPlaying && !this.props.isPlaying) this.stop();
     if (!prevProps.isPageScrollLocked && this.props.isPageScrollLocked) this.lockScroll();
@@ -487,6 +493,7 @@ const Slider = class Slider extends React.Component {
 
     // console.log(Object.assign({}, trayStyle), new Date());
 
+    const filteredProps = omit(props, ['callback']);
     return (
       <div
         ref={(el) => { this.sliderElement = el; }}
@@ -496,7 +503,7 @@ const Slider = class Slider extends React.Component {
         tabIndex={newTabIndex}
         onKeyDown={this.handleOnKeyDown}
         role="listbox"
-        {...props}
+        {...filteredProps}
       >
         <div className={trayWrapClasses} style={trayWrapStyle}>
           <TrayTag
